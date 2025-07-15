@@ -21,6 +21,19 @@ android {
     packagingOptions {
         jniLibs.useLegacyPackaging true
     }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    buildTypes {
+        release {
+            buildConfigField "String", "COMPILATION_DATE", "\"${new Date()}\""
+        }
+        debug {
+            buildConfigField "String", "COMPILATION_DATE", "\"${new Date()}\""
+        }
+    }
 }
 
 repositories {
@@ -36,4 +49,6 @@ dependencies {
     implementation "com.acmerobotics.roadrunner:core:1.0.1"
     implementation "com.acmerobotics.roadrunner:actions:1.0.1"
     implementation "com.acmerobotics.dashboard:dashboard:0.4.16"
+    implementation 'org.openftc:easyopencv:1.5.3'
+    implementation project(':FtcRobotController')
 }
