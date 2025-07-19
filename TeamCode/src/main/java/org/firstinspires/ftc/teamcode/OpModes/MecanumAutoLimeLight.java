@@ -2,35 +2,32 @@ package org.firstinspires.ftc.teamcode.OpModes;
 
 import android.annotation.SuppressLint;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.BuildConfig;
-import org.firstinspires.ftc.teamcode.gamepad.InputAutoMapper;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.gamepad.InputHandler;
 import org.firstinspires.ftc.teamcode.opencv.DrawRectanglePipeline;
-
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvWebcam;
 import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvWebcam;
 
+@Disabled
 @Config
-@Autonomous
-public class MecanumAuto extends LinearOpMode {
+@TeleOp
+public class MecanumAutoLimeLight extends LinearOpMode {
     public static int c270_width  = 320;
     public static int c270_height = 240;
-    public static int c1080_width  = 640;
-    public static int c1080_height = 480;
     public static double pos1 = 0.0;
     public static double pos2 = 0.5;
     public static double pos3 = 1.0;
 
-    public String[] cameraNames = {"WebcamC270", "Webcam1080"};
+    public String[] cameraNames = {"WebcamC270", "Webcam1080", "limelight"};
 
     InputHandler inputHandler;
     OpenCvWebcam webcam;
@@ -39,56 +36,32 @@ public class MecanumAuto extends LinearOpMode {
     Servo cvServo;
     boolean inputComplete= false;
     int camera_width, camera_height;
+
+    private Limelight3A limelight;
+
     @SuppressLint("DefaultLocale")
     @Override
     public void runOpMode() {
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        inputHandler = InputAutoMapper.normal.autoMap(this);
-
-        while (!inputComplete) {
-            inputHandler.loop();
-            if (inputHandler.up("D1:X")) {
-                inputComplete = true;
-            }
-            if (inputHandler.up("D1:Y")) {
-                camera = cameraNames[0];
-                camera_width = c270_width;
-                camera_height = c270_height;
-            }
-            if (inputHandler.up("D1:A")) {
-                camera = cameraNames[1];
-                camera_width = c1080_width;
-                camera_height = c1080_height;
-            }
-
-            telemetry.addData("Compiled on:", BuildConfig.COMPILATION_DATE);
-            telemetry.addData("-----Initialization-----", "");
-            telemetry.addLine();
-            telemetry.addLine("Button A: Webcam 1080");
-            telemetry.addLine("Button Y: Webcam C270");
-            telemetry.addData("Press X to finalize values", inputComplete);
-            telemetry.update();
-        }
+        camera = cameraNames[2];
+        camera_width = c270_width;
+        camera_height = c270_height;
 
         pipeline = new DrawRectanglePipeline(telemetry, camera);
 
         cvServo = hardwareMap.get(Servo.class, "servo");
 
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+
         int cameraMonitorViewId = hardwareMap.appContext
                 .getResources()
                 .getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
 
-        webcam = OpenCvCameraFactory
-                .getInstance()
-                //.createWebcam(hardwareMap.get(WebcamName.class, camera), cameraMonitorViewId);
-                .createWebcam(hardwareMap.get(org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName.class, camera),
-                cameraMonitorViewId);
+//        webcam = OpenCvCameraFactory
+//                .getInstance()
+//                .createWebcam(limelight), cameraMonitorViewId);
 
         webcam.setPipeline(pipeline);
-
-        FtcDashboard dashboard = FtcDashboard.getInstance();
-        dashboard.startCameraStream(webcam, 30); // 30 FPS stream
 
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
